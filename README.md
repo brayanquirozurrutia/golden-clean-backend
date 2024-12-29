@@ -17,7 +17,7 @@ This is the backend for the **Golden Clean** project, developed with Django and 
 
 2. Create the `.env` file based on `sample.env`:
    ```bash
-   cp sample.env .env
+   cp sample_env .env
    ```
 
    Then edit the `.env` file to configure your values.
