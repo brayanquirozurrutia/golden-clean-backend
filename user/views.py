@@ -1,9 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from user.models import User, Region, Comuna, Address
 from faker import Faker
+
+from user.serializers import AddressSerializer
+
 
 class CreateTestUsersAPIView(APIView):
     """
@@ -95,3 +98,15 @@ class PopulateAddressDataAPIView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+class AddressListAPIView(APIView):
+    """
+    APIView to list addresses for the authenticated user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Filter addresses associated with the authenticated user
+        addresses = Address.objects.filter(user=request.user)
+        serializer = AddressSerializer(addresses, many=True)
+        return Response(serializer.data)
