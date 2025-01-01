@@ -51,6 +51,8 @@ class Address(models.Model):
         on_delete=models.RESTRICT,
         limit_choices_to={"role": User.Role.CLIENT},
     )
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.street} {self.number}, {self.comuna.name}, {self.comuna.region.name}"

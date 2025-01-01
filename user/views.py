@@ -1,12 +1,20 @@
+import random
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from user.models import User, Region, Comuna, Address
 from faker import Faker
-
 from user.serializers import AddressSerializer
 
+
+def generate_land_coordinates():
+    """
+    Generate random latitude and longitude coordinates within plausible terrestrial bounds.
+    """
+    lat = random.uniform(-60, 85)  # Latitude range for habitable zones
+    lng = random.uniform(-180, 180)  # Longitude range
+    return lat, lng
 
 class CreateTestUsersAPIView(APIView):
     """
@@ -75,7 +83,11 @@ class PopulateAddressDataAPIView(APIView):
         comunas = list(Comuna.objects.all())
 
         # Fetch first 10 clients
-        clients = User.objects.filter(role=User.Role.CLIENT)[:10]
+        clients = list(User.objects.filter(role=User.Role.CLIENT)[:10])
+
+        # Pre-generate coordinates for all addresses
+        total_addresses = len(clients) * 2  # 2 addresses per user
+        coordinates = [generate_land_coordinates() for _ in range(total_addresses)]
 
         # Create addresses in bulk
         addresses = [
@@ -83,11 +95,13 @@ class PopulateAddressDataAPIView(APIView):
                 street=fake.street_name(),
                 number=fake.building_number(),
                 comuna=fake.random_element(comunas),
-                user=client,
+                user=clients[index // 2], # Assign 2 addresses per user
+                latitude=coordinates[index][0],
+                longitude=coordinates[index][1],
             )
-            for client in clients
-            for _ in range(2)  # 2 addresses per user
+            for index in range(total_addresses)
         ]
+
         Address.objects.bulk_create(addresses, ignore_conflicts=True)
 
         return Response(
